@@ -1,0 +1,18 @@
+{
+  "name": "sueda-ai-portfolio",
+  "version": "1.0.0",
+  "description": "AI-powered portfolio terminal",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "vercel-dev": "vercel dev"
+  },
+  "dependencies": {
+    "@upstash/ratelimit": "^2.0.7",
+    "@upstash/redis": "^1.35.7",
+    "openai": "^4.52.0"
+  },
+  "devDependencies": {
+    "vercel": "^34.2.0"
+  }
+}

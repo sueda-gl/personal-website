@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sueda Gul — AI Portfolio</title>
+    <meta name="description" content="Ask me anything. An AI-powered portfolio that knows my story.">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="custom-cursor"></div>
+
+    <!-- Color Picker Panel -->
+    <div class="color-picker" id="color-picker">
+        <div class="picker-header">
+            <span>THEME://COLOR</span>
+            <button class="picker-toggle" id="picker-toggle">◀</button>
+        </div>
+        <div class="picker-body" id="picker-body">
+            <div class="picker-row">
+                <label>HUE</label>
+                <input type="range" id="hue-slider" class="hue-slider" min="0" max="360" value="17">
+            </div>
+            <div class="picker-row">
+                <label>SATURATION</label>
+                <input type="range" id="sat-slider" class="sat-slider" min="20" max="100" value="52">
+            </div>
+            <div class="picker-row">
+                <label>BRIGHTNESS</label>
+                <input type="range" id="light-slider" class="light-slider" min="40" max="80" value="43">
+            </div>
+            <div class="picker-row">
+                <label>PREVIEW</label>
+                <div class="color-preview" id="color-preview"></div>
+            </div>
+            <div class="picker-row">
+                <label>PRESETS</label>
+                <div class="preset-colors">
+                    <button class="preset" data-color="#ff9c00" style="background:#ff9c00" title="Amber"></button>
+                    <button class="preset" data-color="#00b4ff" style="background:#00b4ff" title="Blue"></button>
+                    <button class="preset" data-color="#00ff41" style="background:#00ff41" title="Green"></button>
+                    <button class="preset" data-color="#ff5085" style="background:#ff5085" title="Rose"></button>
+                    <button class="preset" data-color="#c875ff" style="background:#c875ff" title="Violet"></button>
+                    <button class="preset" data-color="#e8a060" style="background:#e8a060" title="Copper"></button>
+                    <button class="preset" data-color="#60e8c0" style="background:#60e8c0" title="Seafoam"></button>
+                    <button class="preset" data-color="#f5e6c8" style="background:#f5e6c8" title="Champagne"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mouse Reactive Glow -->
+    <div class="mouse-glow" id="mouse-glow"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Boot Sequence Overlay -->
+    <div class="boot-overlay" id="boot-overlay">
+        <div class="boot-screen">
+            <div class="boot-output" id="boot-output"></div>
+        </div>
+    </div>
+
+    <!-- Abstract lines -->
+    <div class="abstract-lines">
+        <div class="abs-line h1"></div>
+        <div class="abs-line h2"></div>
+        <div class="abs-line h3"></div>
+        <div class="abs-line h4"></div>
+        <div class="abs-line v1"></div>
+        <div class="abs-line v2"></div>
+        <div class="abs-line v3"></div>
+        <div class="abs-line v4"></div>
+        <div class="abs-line d1"></div>
+        <div class="abs-line d2"></div>
+    </div>
+
+    <div class="corner-bracket tl"></div>
+    <div class="corner-bracket tr"></div>
+    <div class="corner-bracket bl"></div>
+    <div class="corner-bracket br"></div>
+
+    <span class="float-label tl">SYS://ACTIVE</span>
+    <span class="float-label br">V3.0.0</span>
+    <span class="float-label sl">AI.PORTFOLIO</span>
+    <span class="float-label sr">SUEDA.GUL</span>
+
+    <!-- Terminal -->
+    <div class="terminal">
+        <div class="scanlines"></div>
+        
+        <div class="header">
+            <span>SUEDA://AI</span>
+            <span id="clock"></span>
+        </div>
+
+        <div class="output" id="output"></div>
+
+        <div class="input-area">
+            <span class="prompt">▸</span>
+            <input type="text" class="input" id="input" placeholder="ask me anything..." autofocus>
+            <div class="input-loader" id="input-loader">
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+            </div>
+        </div>
+
+        <div class="suggestions" id="suggestions">
+            <button class="suggest-btn" data-question="Who is Sueda?">Who is Sueda?</button>
+            <button class="suggest-btn" data-question="What projects have you built?">Projects</button>
+            <button class="suggest-btn" data-question="Show me the battle arena project">Battle Arena</button>
+            <button class="suggest-btn" data-question="What's your tech stack?">Tech Stack</button>
+            <button class="suggest-btn" data-question="How can I contact you?">Contact</button>
+        </div>
+    </div>
+
+    <!-- Cinema -->
+    <div class="cinema" id="cinema">
+        <div class="cinema-frame">
+            <div class="aurora"></div>
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+
+            <div class="video-layer" id="video-layer">
+                <video id="project-video" autoplay loop muted playsinline>
+                    <source src="" type="video/mp4">
+                </video>
+                <img id="project-image" src="" alt="" style="display:none;">
+            </div>
+
+            <div class="grain" id="grain">
+                <canvas id="canvas"></canvas>
+            </div>
+
+            <div class="cinema-info">
+                <div class="cinema-title" id="cinema-title"></div>
+                <div class="cinema-tagline" id="cinema-tagline"></div>
+                <div class="cinema-tech" id="cinema-tech"></div>
+            </div>
+            
+            <div class="cinema-loader"><span>▋ INITIALIZING</span></div>
+            <button class="cinema-close" id="close">ESC</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
