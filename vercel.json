@@ -1,27 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.mp4",
-      "use": "@vercel/static"
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "data/**"
     }
-  ],
+  },
   "headers": [
     {
       "source": "/(.*)",
