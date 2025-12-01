@@ -1105,9 +1105,8 @@ body.theme-green::after {
 /* ========== COLOR PICKER ========== */
 .color-picker {
     position: fixed;
-    top: 50%;
+    top: 4%;
     right: 0;
-    transform: translateY(-50%);
     z-index: 9000;
     font-family: 'VT323', monospace;
     background: rgba(8, 7, 6, 0.95);
@@ -1119,7 +1118,7 @@ body.theme-green::after {
 }
 
 .color-picker.collapsed {
-    transform: translateY(-50%) translateX(calc(100% - 32px));
+    transform: translateX(calc(100% - 32px));
 }
 
 .picker-header {
