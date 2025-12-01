@@ -1,31 +1,88 @@
 // ========== PROJECT DATA (for cinema mode) ==========
 const projects = {
-    whyme: {
-        name: 'WHYME.LIVE',
-        tagline: 'AI portfolio that answers questions about me',
-        status: 'LIVE',
-        year: '2024',
-        tech: ['React', 'Node.js', 'OpenAI', 'RAG'],
-        video: null,
-        image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=675&fit=crop'
-    },
-    freedhome: {
-        name: 'FREEDHOME',
-        tagline: 'Smart home discovery powered by ML',
-        status: 'LIVE',
-        year: '2023',
-        tech: ['Python', 'FastAPI', 'React', 'ML'],
-        video: null,
-        image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=675&fit=crop'
-    },
-    battlearena: {
-        name: 'BATTLE ARENA',
-        tagline: 'Anything vs Anything — LLM-powered battles',
-        status: 'EXPERIMENTAL',
-        year: '2024',
-        tech: ['LLM Engine', 'Real-time', 'Creative AI'],
+    towercaster: {
+        name: 'TOWERCASTER',
+        tagline: 'Anything vs Anything — AI judges the battle',
+        description: 'A real-time AI-powered PvP game where you can fight anything vs anything, with each round judged by an LLM using its own hidden logic — and the most creative player winning in the long run.',
+        status: 'AWARD-WINNING',
+        year: '2025',
+        achievement: '🏆 3rd Place — Supercell Track @ Junction 2025',
+        tech: ['LLM', 'Real-time PvP', 'Game Dev'],
         video: 'battle-arena.mp4',
-        image: null
+        link: 'https://www.towercaster.com',
+        github: 'https://github.com/sueda-gl/towercaster'
+    },
+    bookspire: {
+        name: 'BOOKSPIRE',
+        tagline: 'Bringing book characters alive for English learning',
+        description: 'An edtech project that helps middle-school students learn English by reading stories and chatting with AI-powered book characters that guide, respond, and create alternative storylines.',
+        status: 'EX-STARTUP',
+        year: '2024',
+        achievement: 'Ran for 1 year with real users',
+        tech: ['AI', 'EdTech', 'Backend'],
+        video: 'bookspirevideo.mp4',
+        github: 'https://github.com/sueda-gl/bookspire_backend_public'
+    },
+    braynr: {
+        name: 'BRAYNR',
+        tagline: 'Math-to-Video Multi-Agent System',
+        description: 'A multi-agent pipeline that turns complex math problems into short educational videos using solver, pedagogy, and scene-generation agents.',
+        status: 'AWARD-WINNING',
+        year: '2025',
+        achievement: '🏆 1st Place — GDSC AI Hack 2025',
+        tech: ['AI Agents', 'Manim', 'Video Gen'],
+        video: 'agentic-3b1b.mp4',
+        github: 'https://github.com/sueda-gl/braynr'
+    },
+    thesis: {
+        name: 'LLM SOCIAL SIM',
+        tagline: "Bachelor's Thesis — LLM agents simulate social media",
+        description: 'A modular agent-based simulation that uses LLM-driven agents to study how hope- and fear-framed environmental campaigns spread through online networks.',
+        status: 'RESEARCH',
+        year: '2024',
+        tech: ['LLM Agents', 'Simulation', 'Research'],
+        video: null,
+        github: 'https://github.com/sueda-gl/thes'
+    },
+    misperception: {
+        name: 'MISPERCEPTION.ART',
+        tagline: 'Interactive AI art — shifting emotional interpretations',
+        description: 'An interactive AI art piece where users click to explore shifting, distorted interpretations of emotional and symbolic prompts.',
+        status: 'LIVE',
+        year: '2024',
+        tech: ['AI Art', 'Interactive', 'Web'],
+        video: null,
+        link: 'https://www.misperception.art/'
+    },
+    stassel: {
+        name: 'S-TASSEL',
+        tagline: 'Multi-tier market auction simulation',
+        description: 'A simulation tool that shows how prices, fairness, and revenue balance each other in a multi-tier market through a self-correcting auction system.',
+        status: 'LIVE',
+        year: '2024',
+        tech: ['Simulation', 'Economics', 'Streamlit'],
+        video: null,
+        link: 'https://s-stl-simulation.streamlit.app/',
+        github: 'https://github.com/sueda-gl/S-TASSEL'
+    },
+    evolutionary: {
+        name: 'EVO HYPEROPT',
+        tagline: 'Evolutionary algorithms for hyperparameter tuning',
+        description: 'A study comparing Genetic Algorithm, Island Model, and Cellular GA population structures for tuning an MLPClassifier on the Ionosphere radar dataset.',
+        status: 'RESEARCH',
+        year: '2024',
+        tech: ['Genetic Algorithms', 'ML', 'Research'],
+        video: null,
+        github: 'https://github.com/sueda-gl/evolutionary'
+    },
+    agentsim: {
+        name: 'AGENT BEHAVIORAL SIM',
+        tagline: 'Current work — ML agents evolving beliefs over time',
+        description: 'A custom simulation platform developed under Prof. Dovev Lavie, where ML-driven agents evolve their beliefs and behavior over time.',
+        status: 'IN PROGRESS',
+        year: '2025',
+        tech: ['ML Agents', 'Simulation', 'Research'],
+        video: null
     }
 };
 
@@ -389,18 +446,471 @@ async function typeAsciiArt() {
     }
 }
 
+// ========== TEASER MODE ==========
+// Opens cinema for a short teaser, then auto-closes
+function openTeaser(projectKey, duration = 6000) {
+    return new Promise((resolve) => {
+        const p = projects[projectKey];
+        if (!p) {
+            resolve();
+            return;
+        }
+        
+        currentProject = p;
+        cinemaTitle.textContent = p.name;
+        cinemaTagline.textContent = p.tagline;
+        cinemaTech.innerHTML = p.tech.map(t => `<span class="tech-tag">[${t}]</span>`).join(' ');
+        
+        document.body.style.overflow = 'hidden';
+        
+        projectVideo.pause();
+        
+        grain.classList.remove('fade');
+        grain.style.opacity = '1';
+        videoLayer.classList.remove('show');
+        videoLayer.style.opacity = '0';
+        cinema.classList.remove('revealed');
+        projectVideo.style.display = 'none';
+        projectImage.style.display = 'none';
+        
+        if (p.video) {
+            const source = projectVideo.querySelector('source');
+            source.src = p.video;
+            projectVideo.load();
+            projectVideo.style.display = 'block';
+        } else if (p.image) {
+            projectImage.src = p.image;
+            projectImage.style.display = 'block';
+        }
+        
+        cinema.classList.add('active');
+        startGrain();
+        
+        // Reveal sequence
+        setTimeout(() => {
+            grain.style.opacity = '';
+            grain.classList.add('fade');
+            videoLayer.style.opacity = '';
+            videoLayer.classList.add('show');
+            cinema.classList.add('revealed');
+            if (p.video) {
+                projectVideo.currentTime = 0;
+                projectVideo.play().catch(() => {});
+            }
+            
+            // Auto-close after duration
+            setTimeout(() => {
+                closeCinema();
+                setTimeout(resolve, 500); // Wait for close animation
+            }, duration);
+        }, 2000); // Faster reveal for teaser
+    });
+}
+
+// ========== PROJECTS LIST ==========
+async function renderProjectsList() {
+    const block = document.createElement('div');
+    block.className = 'projects-list-block visible';
+    
+    const projectsData = [
+        { key: 'towercaster', badge: '🏆 3rd Place — Junction 2025', hasVideo: true },
+        { key: 'bookspire', badge: 'ex-startup • ran for 1 year', hasVideo: true },
+        { key: 'braynr', badge: '🏆 1st Place — GDSC AI Hack', hasVideo: true },
+        { key: 'thesis', badge: 'research • bachelor\'s thesis', hasVideo: false },
+        { key: 'misperception', badge: 'live • AI art', hasVideo: false },
+        { key: 'stassel', badge: 'live • simulation', hasVideo: false },
+        { key: 'evolutionary', badge: 'research • ML', hasVideo: false },
+        { key: 'agentsim', badge: 'in progress • current work', hasVideo: false }
+    ];
+    
+    // Create initial structure
+    block.innerHTML = `
+        <div class="projects-list-title"></div>
+        <div class="projects-list-spacer"></div>
+        <div class="projects-cards-container"></div>
+        <div class="projects-list-spacer"></div>
+        <div class="projects-list-hint" style="opacity: 0;">Click any card to explore.</div>
+    `;
+    
+    output.appendChild(block);
+    smoothScroll();
+    
+    // Typewriter effect for title (slower)
+    const titleEl = block.querySelector('.projects-list-title');
+    await typewriterEffect(titleEl, "Here's what Sueda's been building:", 50);
+    
+    // Pause to let user read
+    await new Promise(r => setTimeout(r, 800));
+    
+    const container = block.querySelector('.projects-cards-container');
+    
+    // Render each card with typewriter effect
+    for (const { key, badge, hasVideo } of projectsData) {
+        const p = projects[key];
+        if (!p) continue;
+        
+        // Build action buttons
+        let actions = [];
+        if (hasVideo) {
+            actions.push(`<span class="action-btn" onclick="event.stopPropagation(); openCinema('${key}')">▶ watch</span>`);
+        }
+        if (p.link) {
+            actions.push(`<a href="${p.link}" target="_blank" class="action-btn" onclick="event.stopPropagation()">🔗 visit</a>`);
+        }
+        if (p.github) {
+            actions.push(`<a href="${p.github}" target="_blank" class="action-btn" onclick="event.stopPropagation()">📂 github</a>`);
+        }
+        const actionsHtml = actions.join(' ');
+        const mainAction = hasVideo ? `openCinema('${key}')` : `showProjectCommand('${key}')`;
+        
+        // Create card element
+        const card = document.createElement('div');
+        card.className = 'project-card-item';
+        card.dataset.project = key;
+        card.onclick = () => eval(mainAction);
+        card.innerHTML = `
+            <div class="project-card-item-header">
+                <span class="project-card-item-name"></span>
+                <span class="project-card-item-badge" style="opacity: 0;">${badge}</span>
+            </div>
+            <div class="project-card-item-tagline"></div>
+            <div class="project-card-item-desc" style="opacity: 0;">${p.description || ''}</div>
+            <div class="project-card-item-footer" style="opacity: 0;">
+                <span class="project-card-item-tech">${p.tech.map(t => `[${t}]`).join(' ')}</span>
+                <span class="project-card-item-actions">${actionsHtml}</span>
+            </div>
+        `;
+        container.appendChild(card);
+        smoothScroll();
+        
+        // Type out name (slow and deliberate)
+        const nameEl = card.querySelector('.project-card-item-name');
+        await typewriterEffect(nameEl, p.name, 55);
+        
+        // Show badge with pause
+        await new Promise(r => setTimeout(r, 250));
+        const badgeEl = card.querySelector('.project-card-item-badge');
+        badgeEl.style.transition = 'opacity 0.5s ease';
+        badgeEl.style.opacity = '1';
+        
+        // Pause before tagline
+        await new Promise(r => setTimeout(r, 350));
+        
+        // Type out tagline (deliberate pace)
+        const taglineEl = card.querySelector('.project-card-item-tagline');
+        await typewriterEffect(taglineEl, p.tagline, 35);
+        
+        // Pause before description
+        await new Promise(r => setTimeout(r, 450));
+        
+        // Fade in description and footer together
+        const descEl = card.querySelector('.project-card-item-desc');
+        const footerEl = card.querySelector('.project-card-item-footer');
+        descEl.style.transition = 'opacity 0.6s ease';
+        footerEl.style.transition = 'opacity 0.6s ease 0.2s';
+        descEl.style.opacity = '1';
+        footerEl.style.opacity = '1';
+        
+        // Let user absorb this card before moving on
+        await new Promise(r => setTimeout(r, 700));
+        smoothScroll();
+    }
+    
+    // Reveal hint
+    await new Promise(r => setTimeout(r, 500));
+    const hint = block.querySelector('.projects-list-hint');
+    hint.style.transition = 'opacity 0.6s ease';
+    hint.style.opacity = '1';
+    smoothScroll();
+}
+
+// Smooth scroll helper - less jarring than instant scroll
+function smoothScroll() {
+    output.scrollTo({
+        top: output.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+
+// Typewriter helper function
+function typewriterEffect(element, text, speed = 20) {
+    return new Promise(resolve => {
+        let i = 0;
+        element.textContent = '';
+        const type = () => {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            } else {
+                resolve();
+            }
+        };
+        type();
+    });
+}
+
+// ========== CONTACT SECTION ==========
+async function renderContactSection() {
+    const block = document.createElement('div');
+    block.className = 'contact-block visible';
+    
+    block.innerHTML = `
+        <div class="contact-title"></div>
+        <div class="contact-spacer"></div>
+        <div class="contact-message" style="opacity: 0;"></div>
+        <div class="contact-spacer"></div>
+        <div class="contact-items"></div>
+    `;
+    
+    output.appendChild(block);
+    smoothScroll();
+    
+    // Type the title
+    const titleEl = block.querySelector('.contact-title');
+    await typewriterEffect(titleEl, "Let's connect!", 45);
+    
+    await new Promise(r => setTimeout(r, 400));
+    
+    // Fade in message
+    const messageEl = block.querySelector('.contact-message');
+    messageEl.textContent = "I'd love to hear from you — whether it's about a project, an idea, or just to say hi.";
+    messageEl.style.transition = 'opacity 0.6s ease';
+    messageEl.style.opacity = '1';
+    smoothScroll();
+    
+    await new Promise(r => setTimeout(r, 600));
+    
+    const itemsContainer = block.querySelector('.contact-items');
+    
+    // Email item
+    const emailItem = document.createElement('div');
+    emailItem.className = 'contact-item';
+    emailItem.innerHTML = `
+        <span class="contact-label">EMAIL</span>
+        <a href="mailto:sueda.nrgul@gmail.com" class="contact-link">sueda.nrgul@gmail.com</a>
+    `;
+    emailItem.style.opacity = '0';
+    itemsContainer.appendChild(emailItem);
+    emailItem.style.transition = 'opacity 0.5s ease';
+    await new Promise(r => setTimeout(r, 50));
+    emailItem.style.opacity = '1';
+    smoothScroll();
+    
+    await new Promise(r => setTimeout(r, 400));
+    
+    // LinkedIn item
+    const linkedinItem = document.createElement('div');
+    linkedinItem.className = 'contact-item';
+    linkedinItem.innerHTML = `
+        <span class="contact-label">LINKEDIN</span>
+        <a href="https://www.linkedin.com/in/sueda-gul-/" target="_blank" class="contact-link">linkedin.com/in/sueda-gul-</a>
+    `;
+    linkedinItem.style.opacity = '0';
+    itemsContainer.appendChild(linkedinItem);
+    linkedinItem.style.transition = 'opacity 0.5s ease';
+    await new Promise(r => setTimeout(r, 50));
+    linkedinItem.style.opacity = '1';
+    smoothScroll();
+}
+
+// ========== PROJECT INFO CARD (for projects without video) ==========
+function renderProjectInfoCard(projectKey) {
+    const p = projects[projectKey];
+    if (!p) return;
+    
+    const block = document.createElement('div');
+    block.className = 'project-info-card';
+    
+    let linksHtml = '';
+    if (p.link) {
+        linksHtml += `<a href="${p.link}" target="_blank" class="project-card-link">🔗 Live Demo</a>`;
+    }
+    if (p.github) {
+        linksHtml += `<a href="${p.github}" target="_blank" class="project-card-link">📂 GitHub</a>`;
+    }
+    
+    block.innerHTML = `
+        <div class="project-card-header">
+            <span class="project-card-name">${p.name}</span>
+            <span class="project-card-status">[${p.status}]</span>
+        </div>
+        ${p.achievement ? `<div class="project-card-achievement">${p.achievement}</div>` : ''}
+        <div class="project-card-tagline">${p.tagline}</div>
+        <div class="project-card-desc">${p.description || ''}</div>
+        <div class="project-card-tech">${p.tech.map(t => `<span>[${t}]</span>`).join(' ')}</div>
+        ${linksHtml ? `<div class="project-card-links">${linksHtml}</div>` : ''}
+    `;
+    
+    output.appendChild(block);
+    
+    requestAnimationFrame(() => {
+        block.classList.add('visible');
+        scrollToBottom();
+    });
+}
+
+// ========== INTRO SEQUENCE ==========
+async function renderIntroBlock() {
+    // Create the intro block container
+    const block = document.createElement('div');
+    block.className = 'intro-block visible';
+    output.appendChild(block);
+    
+    // Helper to add element and scroll
+    const addElement = (html) => {
+        const el = document.createElement('div');
+        el.innerHTML = html;
+        const child = el.firstElementChild || el;
+        block.appendChild(child.cloneNode ? child : el);
+        smoothScroll();
+        return block.lastElementChild;
+    };
+    
+    // Line 1: "Now that I got your attention..."
+    const line1 = addElement('<div class="intro-line playful"></div>');
+    await typewriterEffect(line1, "Now that I got your attention...", 40);
+    await new Promise(r => setTimeout(r, 400));
+    
+    // Line 2: "Let me set this straight."
+    const line2 = addElement('<div class="intro-line"></div>');
+    await typewriterEffect(line2, "Let me set this straight.", 40);
+    await new Promise(r => setTimeout(r, 500));
+    
+    // Spacer + GitHub
+    addElement('<div class="intro-spacer"></div>');
+    const githubItem = addElement(`
+        <div class="intro-item" style="opacity: 0;">
+            <span class="intro-label">GITHUB</span>
+            <a href="https://github.com/sueda-gl" target="_blank" class="intro-link">github.com/sueda-gl</a>
+        </div>
+    `);
+    githubItem.style.transition = 'opacity 0.5s ease';
+    await new Promise(r => setTimeout(r, 50));
+    githubItem.style.opacity = '1';
+    smoothScroll();
+    await new Promise(r => setTimeout(r, 600));
+    
+    // "Two projects she's proud of:"
+    addElement('<div class="intro-spacer"></div>');
+    const projectsLine = addElement('<div class="intro-line dim"></div>');
+    await typewriterEffect(projectsLine, "Her favorite projects:", 35);
+    await new Promise(r => setTimeout(r, 500));
+    addElement('<div class="intro-spacer"></div>');
+    
+    // TOWERCASTER card - progressive reveal
+    const tcCard = addElement(`
+        <div class="highlight-card" data-project="towercaster" onclick="openCinema('towercaster')">
+            <div class="highlight-header">
+                <span class="highlight-name"></span>
+                <span class="highlight-badge" style="opacity: 0;">🏆 3rd Place — Junction 2025</span>
+            </div>
+            <div class="highlight-tagline"></div>
+            <div class="highlight-desc" style="opacity: 0;">A real-time AI-powered PvP game where you fight anything vs anything, with each round judged by an LLM using its own hidden logic.</div>
+            <div class="highlight-footer" style="opacity: 0;">
+                <span class="highlight-tech">[LLM] [Real-time PvP] [Game Dev]</span>
+                <span class="highlight-action">▶ watch</span>
+            </div>
+        </div>
+    `);
+    smoothScroll();
+    
+    // Type TOWERCASTER name
+    await typewriterEffect(tcCard.querySelector('.highlight-name'), 'TOWERCASTER', 50);
+    await new Promise(r => setTimeout(r, 200));
+    
+    // Show badge
+    const tcBadge = tcCard.querySelector('.highlight-badge');
+    tcBadge.style.transition = 'opacity 0.4s ease';
+    tcBadge.style.opacity = '1';
+    await new Promise(r => setTimeout(r, 300));
+    
+    // Type tagline
+    await typewriterEffect(tcCard.querySelector('.highlight-tagline'), 'Anything vs Anything — AI judges the battle', 30);
+    await new Promise(r => setTimeout(r, 350));
+    
+    // Fade in description and footer
+    const tcDesc = tcCard.querySelector('.highlight-desc');
+    const tcFooter = tcCard.querySelector('.highlight-footer');
+    tcDesc.style.transition = 'opacity 0.5s ease';
+    tcFooter.style.transition = 'opacity 0.5s ease 0.15s';
+    tcDesc.style.opacity = '1';
+    tcFooter.style.opacity = '1';
+    smoothScroll();
+    await new Promise(r => setTimeout(r, 700));
+    
+    // BOOKSPIRE card - progressive reveal
+    const bsCard = addElement(`
+        <div class="highlight-card" data-project="bookspire" onclick="openCinema('bookspire')">
+            <div class="highlight-header">
+                <span class="highlight-name"></span>
+                <span class="highlight-badge" style="opacity: 0;">ex-startup • ran for 1 year</span>
+            </div>
+            <div class="highlight-tagline"></div>
+            <div class="highlight-desc" style="opacity: 0;">An edtech project helping middle-school students learn English by chatting with AI-powered book characters that guide, respond, and create alternative storylines.</div>
+            <div class="highlight-footer" style="opacity: 0;">
+                <span class="highlight-tech">[AI] [EdTech] [Backend]</span>
+                <span class="highlight-action">▶ watch</span>
+            </div>
+        </div>
+    `);
+    smoothScroll();
+    
+    // Type BOOKSPIRE name
+    await typewriterEffect(bsCard.querySelector('.highlight-name'), 'BOOKSPIRE', 50);
+    await new Promise(r => setTimeout(r, 200));
+    
+    // Show badge
+    const bsBadge = bsCard.querySelector('.highlight-badge');
+    bsBadge.style.transition = 'opacity 0.4s ease';
+    bsBadge.style.opacity = '1';
+    await new Promise(r => setTimeout(r, 300));
+    
+    // Type tagline
+    await typewriterEffect(bsCard.querySelector('.highlight-tagline'), 'Bringing book characters alive for English learning', 30);
+    await new Promise(r => setTimeout(r, 350));
+    
+    // Fade in description and footer
+    const bsDesc = bsCard.querySelector('.highlight-desc');
+    const bsFooter = bsCard.querySelector('.highlight-footer');
+    bsDesc.style.transition = 'opacity 0.5s ease';
+    bsFooter.style.transition = 'opacity 0.5s ease 0.15s';
+    bsDesc.style.opacity = '1';
+    bsFooter.style.opacity = '1';
+    smoothScroll();
+    await new Promise(r => setTimeout(r, 600));
+    
+    // Closing line
+    addElement('<div class="intro-spacer"></div>');
+    const closingLine = addElement('<div class="intro-line closing"></div>');
+    await typewriterEffect(closingLine, "Now you can ask whatever you'd like — projects, her story, hobbies, or just say hi.", 25);
+    smoothScroll();
+}
+
 async function initTerminal() {
     output.innerHTML = '';
     
     await typeAsciiArt();
     
     print('════════════════════════════════════════════', 'dim', 100, false);
-    print("Hey, I'm Sueda's AI.", 'bright', 200);
-    print('I know her story, her projects, and what she builds.', '', 400);
-    print('&nbsp;', '', 600, false);
-    print('Ask me anything_', 'dim', 800);
     
-    setTimeout(() => input.focus(), 1200);
+    // First introduction
+    await new Promise(r => setTimeout(r, 400));
+    print("I'm Sueda's AI agent.", 'intro-text', 0);
+    
+    // Wait a moment, then play teaser
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Play TOWERCASTER teaser (10 seconds of video - longer to appreciate it)
+    await openTeaser('towercaster', 10000);
+    
+    // Small pause after teaser closes
+    await new Promise(r => setTimeout(r, 600));
+    
+    // Now render the intro block with links (progressive reveal)
+    await renderIntroBlock();
+    
+    setTimeout(() => input.focus(), 500);
 }
 
 // ========== PARTICLES ==========
@@ -527,6 +1037,7 @@ function stopGrain() { cancelAnimationFrame(grainAnim); }
 
 // ========== CINEMA ==========
 let currentProject = null;
+let cinemaRevealResolve = null; // For Promise-based reveal tracking
 
 function openCinema(projectKey) {
     const p = projects[projectKey];
@@ -540,16 +1051,27 @@ function openCinema(projectKey) {
     cinemaTagline.textContent = p.tagline;
     cinemaTech.innerHTML = p.tech.map(t => `<span class="tech-tag">[${t}]</span>`).join(' ');
     
-    // Reset states
+    // Prevent body scroll while cinema is open
+    document.body.style.overflow = 'hidden';
+    
+    // Stop any currently playing video FIRST
+    projectVideo.pause();
+    
+    // Reset states - use inline styles to IMMEDIATELY reset (bypass CSS transitions)
     grain.classList.remove('fade');
+    grain.style.opacity = '1'; // Grain instantly visible (covers everything)
     videoLayer.classList.remove('show');
+    videoLayer.style.opacity = '0'; // Video layer instantly hidden
     cinema.classList.remove('revealed');
     projectVideo.style.display = 'none';
     projectImage.style.display = 'none';
     
     // Set up media
     if (p.video) {
-        projectVideo.querySelector('source').src = p.video;
+        const source = projectVideo.querySelector('source');
+        
+        // Always set the source and reload to ensure clean state
+        source.src = p.video;
         projectVideo.load();
         projectVideo.style.display = 'block';
     } else if (p.image) {
@@ -560,59 +1082,139 @@ function openCinema(projectKey) {
     cinema.classList.add('active');
     startGrain();
     
-    // Reveal sequence
+    // Reveal sequence - video only starts playing when grain fades
     setTimeout(() => {
-        grain.classList.add('fade');
-        videoLayer.classList.add('show');
+        // Remove inline styles so CSS transitions can take over for the reveal
+        grain.style.opacity = '';
+        grain.classList.add('fade'); // Grain fades out via CSS transition
+        videoLayer.style.opacity = '';
+        videoLayer.classList.add('show'); // Video fades in via CSS transition
         cinema.classList.add('revealed');
         if (p.video) {
+            // Reset to beginning and play only when revealed
+            projectVideo.currentTime = 0;
             projectVideo.play().catch(() => {});
         }
+        // Resolve any waiting promise when cinema is revealed
+        if (cinemaRevealResolve) {
+            cinemaRevealResolve();
+            cinemaRevealResolve = null;
+        }
     }, 2500);
+}
+
+// Opens cinema and returns a Promise that resolves when the video/content is revealed
+function openCinemaAndWait(projectKey) {
+    return new Promise((resolve) => {
+        const p = projects[projectKey];
+        if (!p) {
+            resolve(); // Resolve immediately if project not found
+            return;
+        }
+        cinemaRevealResolve = resolve;
+        openCinema(projectKey);
+    });
 }
 
 function closeCinema() {
     cinema.classList.remove('active', 'revealed');
     stopGrain();
+    
+    // Stop video and reset to beginning for next play
     projectVideo.pause();
+    projectVideo.currentTime = 0;
+    
+    // Immediately reset video layer and grain to prevent flash on next open
+    videoLayer.classList.remove('show');
+    videoLayer.style.opacity = '0';
+    grain.classList.remove('fade');
+    grain.style.opacity = '1';
+    
     currentProject = null;
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    // Scroll output to bottom after closing cinema
+    // Use requestAnimationFrame to ensure DOM is updated
+    requestAnimationFrame(() => {
+        scrollToBottom();
+        input.focus();
+    });
 }
 
 // ========== DIRECT COMMANDS (work without AI) ==========
+// Helper to handle project show commands - opens cinema first, then shows info
+async function showProjectCommand(projectKey) {
+    const p = projects[projectKey];
+    if (!p) return false;
+    
+    // If project has video, open cinema mode
+    if (p.video) {
+        print('Initializing...', 'dim', 0);
+        
+        // Open cinema and wait for reveal (video shows first!)
+        await openCinemaAndWait(projectKey);
+        
+        // Small delay for smooth transition
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Now show project block (user will see this when they close cinema)
+        renderProjectBlock(p);
+    } else {
+        // No video - show info card instead
+        renderProjectInfoCard(projectKey);
+    }
+    
+    return true;
+}
+
 function handleDirectCommand(message) {
     const msg = message.toLowerCase().trim();
     
-    // Show commands
-    if (msg === 'show battlearena' || msg === 'show battle arena' || msg === 'battle arena' || msg === 'battlearena') {
-        print('Initializing...', 'dim', 0);
-        setTimeout(() => renderProjectBlock(projects.battlearena), 400);
-        setTimeout(() => openCinema('battlearena'), 2000);
+    // Show commands - now async with video first
+    if (msg === 'show towercaster' || msg === 'towercaster') {
+        showProjectCommand('towercaster');
         return true;
     }
-    if (msg === 'show whyme' || msg === 'whyme') {
-        print('Initializing...', 'dim', 0);
-        setTimeout(() => renderProjectBlock(projects.whyme), 400);
-        setTimeout(() => openCinema('whyme'), 2000);
+    if (msg === 'show bookspire' || msg === 'bookspire') {
+        showProjectCommand('bookspire');
         return true;
     }
-    if (msg === 'show freedhome' || msg === 'freedhome') {
-        print('Initializing...', 'dim', 0);
-        setTimeout(() => renderProjectBlock(projects.freedhome), 400);
-        setTimeout(() => openCinema('freedhome'), 2000);
+    if (msg.includes('3b1b') || msg.includes('braynr') || msg === 'show braynr') {
+        showProjectCommand('braynr');
+        return true;
+    }
+    if (msg.includes('thesis') || msg.includes('social sim') || msg === 'llm social sim') {
+        showProjectCommand('thesis');
+        return true;
+    }
+    if (msg.includes('misperception') || msg === 'art') {
+        showProjectCommand('misperception');
+        return true;
+    }
+    if (msg.includes('stassel') || msg.includes('s-tassel') || msg.includes('auction')) {
+        showProjectCommand('stassel');
+        return true;
+    }
+    if (msg.includes('evolutionary') || msg.includes('evo') || msg.includes('hyperopt')) {
+        showProjectCommand('evolutionary');
+        return true;
+    }
+    if (msg.includes('agent') && msg.includes('sim') || msg === 'current work') {
+        showProjectCommand('agentsim');
         return true;
     }
     
     // Projects list
-    if (msg === 'projects' || msg === 'ls') {
-        print('&nbsp;', '', 0, false);
-        print('PROJECTS:', 'bright', 100);
-        let delay = 200;
-        Object.entries(projects).forEach(([key, p]) => {
-            print(`  ${key.padEnd(14)} ${p.name}`, '', delay);
-            delay += 100;
-        });
-        print('&nbsp;', '', delay, false);
-        print('Type "show [name]" to view', 'dim', delay + 100);
+    if (msg === 'projects' || msg === 'ls' || msg === 'what projects' || msg.includes('projects has she built') || msg.includes('what has she built')) {
+        renderProjectsList();
+        return true;
+    }
+    
+    // Contact
+    if (msg === 'contact' || msg.includes('contact') || msg.includes('email') || msg.includes('reach') || msg.includes('linkedin')) {
+        renderContactSection();
         return true;
     }
     
@@ -670,7 +1272,16 @@ async function sendMessage(message) {
         if (data.error) {
             print(data.error, 'error', 0);
         } else {
-            // Render AI response in styled block
+            // Check if we should show cinema mode FIRST (video before text)
+            if (data.showProject && projects[data.showProject]) {
+                // Open cinema and wait for video to be revealed
+                await openCinemaAndWait(data.showProject);
+                
+                // Small additional delay for smooth transition
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            // NOW render AI response in styled block (after video is shown)
             await renderAIResponse(data.reply);
             
             // Show project data block if available
@@ -678,13 +1289,6 @@ async function sendMessage(message) {
                 setTimeout(() => {
                     renderProjectBlock(data.projectData);
                 }, 300);
-            }
-            
-            // Check if we should show cinema mode
-            if (data.showProject && projects[data.showProject]) {
-                setTimeout(() => {
-                    openCinema(data.showProject);
-                }, 2000);
             }
         }
     } catch (error) {
