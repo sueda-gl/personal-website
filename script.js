@@ -937,7 +937,7 @@ async function initTerminal() {
     
     // First introduction
     await new Promise(r => setTimeout(r, 400));
-    print("I'm Sueda's AI agent.", 'intro-text', 0);
+    print("I'm Sueda's AI.", 'intro-text', 0);
     
     // Wait a moment, then play teaser
     await new Promise(r => setTimeout(r, 2000));
