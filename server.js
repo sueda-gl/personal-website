@@ -124,6 +124,7 @@ setInterval(() => {
 // ============================================
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_SESSION_ID_LENGTH = 50;
+const MAX_REQUEST_BODY_SIZE = 2048; // 2KB max request body
 
 function validateInput(body) {
     if (!body.message || typeof body.message !== 'string') {
@@ -186,6 +187,10 @@ setInterval(cleanupSessions, 5 * 60 * 1000);
 // CORS CONFIGURATION
 // ============================================
 const ALLOWED_ORIGINS = [
+    // Production
+    'https://suedagul.com',
+    'https://www.suedagul.com',
+    // Local development
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:3000',
@@ -217,6 +222,17 @@ function setSecurityHeaders(res) {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // SECURITY: Add CSP header for local development too
+    res.setHeader('Content-Security-Policy', 
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "img-src 'self' data: blob:; " +
+        "media-src 'self' blob:; " +
+        "connect-src 'self' https://api.openai.com; " +
+        "frame-ancestors 'none'"
+    );
 }
 
 // ============================================
@@ -242,10 +258,31 @@ async function handleChat(req, res) {
     res.setHeader('X-RateLimit-Remaining', rateCheck.remaining);
     
     let body = '';
-    req.on('data', chunk => body += chunk);
+    let bodySize = 0;
+    req.on('data', chunk => {
+        bodySize += chunk.length;
+        // SECURITY: Prevent large request body DoS attacks
+        if (bodySize > MAX_REQUEST_BODY_SIZE) {
+            res.writeHead(413, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Request body too large' }));
+            req.destroy();
+            return;
+        }
+        body += chunk;
+    });
     req.on('end', async () => {
         try {
             const parsed = JSON.parse(body);
+            
+            // SECURITY: Reject prototype pollution attempts
+            // Check if these keys exist as OWN properties (not inherited)
+            if (Object.prototype.hasOwnProperty.call(parsed, '__proto__') ||
+                Object.prototype.hasOwnProperty.call(parsed, 'constructor') ||
+                Object.prototype.hasOwnProperty.call(parsed, 'prototype')) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid request payload' }));
+                return;
+            }
             
             // Input validation
             const validation = validateInput(parsed);
@@ -353,8 +390,18 @@ function serveStatic(req, res) {
                 
                 if (range) {
                     const parts = range.replace(/bytes=/, '').split('-');
-                    const start = parseInt(parts[0], 10);
-                    const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+                    let start = parseInt(parts[0], 10);
+                    let end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+                    
+                    // SECURITY: Validate range values to prevent DoS
+                    if (isNaN(start) || start < 0) start = 0;
+                    if (isNaN(end) || end >= stat.size) end = stat.size - 1;
+                    if (start > end) {
+                        res.writeHead(416, { 'Content-Type': 'text/plain' });
+                        res.end('Range Not Satisfiable');
+                        return;
+                    }
+                    
                     const chunkSize = end - start + 1;
                     
                     res.writeHead(206, {

@@ -249,14 +249,13 @@ function validateInput(body) {
 // CORS CONFIGURATION
 // ============================================
 const ALLOWED_ORIGINS = [
-    // Production - UPDATE THESE WITH YOUR DOMAINS
+    // Production
     'https://suedagul.com',
     'https://www.suedagul.com',
-    'https://whyme.live',
-    'https://www.whyme.live',
     
-    // Vercel preview deployments
-    /\.vercel\.app$/,
+    // Vercel preview deployments - pattern matches your project name
+    // Format: pweb-<hash>.vercel.app or pweb-git-<branch>-<username>.vercel.app
+    /^https:\/\/pweb(-[a-z0-9-]+)?\.vercel\.app$/,
     
     // Local development
     'http://localhost:3000',

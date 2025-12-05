@@ -106,7 +106,9 @@ const bootOutput = $('boot-output');
 const suggestions = $('suggestions');
 
 // ========== SESSION ==========
-const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+// SECURITY: Use crypto.getRandomValues for secure session ID generation
+const sessionId = 'session_' + crypto.getRandomValues(new Uint32Array(2))
+    .reduce((acc, val) => acc + val.toString(36), '');
 
 // ========== SMART SCROLL ==========
 // Only auto-scroll if user is near the bottom (not reading history)
@@ -185,30 +187,35 @@ function typeText(element, text, speed = typeSpeed) {
 
 async function processQueue() {
     if (isTyping || printQueue.length === 0) return;
-    
+
     isTyping = true;
-    const { text, className, useTypewriter } = printQueue.shift();
-    
+    const { text, className, useTypewriter, allowHtml } = printQueue.shift();
+
     const el = document.createElement('div');
     el.className = `line ${className}`;
     output.appendChild(el);
     smartScroll();
-    
+
     if (useTypewriter && text && text !== '&nbsp;') {
         await typeText(el, text);
-    } else {
+    } else if (allowHtml) {
+        // SECURITY: Only use innerHTML when explicitly allowed (for internal static content)
         el.innerHTML = text;
+    } else {
+        // SECURITY: Default to textContent for safety
+        el.textContent = text;
     }
-    
+
     smartScroll();
     isTyping = false;
-    
+
     setTimeout(() => processQueue(), 50);
 }
 
-function print(text, className = '', delay = 0, useTypewriter = true) {
+// SECURITY: allowHtml defaults to false - only set to true for trusted static content
+function print(text, className = '', delay = 0, useTypewriter = true, allowHtml = false) {
     setTimeout(() => {
-        printQueue.push({ text, className, useTypewriter });
+        printQueue.push({ text, className, useTypewriter, allowHtml });
         processQueue();
     }, delay);
 }
@@ -216,7 +223,8 @@ function print(text, className = '', delay = 0, useTypewriter = true) {
 function printInstant(text, className = '') {
     const el = document.createElement('div');
     el.className = `line ${className}`;
-    el.innerHTML = text;
+    // SECURITY: Use textContent instead of innerHTML for user-provided text
+    el.textContent = text;
     output.appendChild(el);
     scrollToBottom(); // Always scroll for user messages
 }
@@ -264,60 +272,35 @@ function renderProjectBlock(projectData) {
 }
 
 // Render AI response in a styled block with typewriter effect
+// SECURITY: Only renders plain text - no HTML parsing to prevent XSS
 function renderAIResponse(text) {
     return new Promise(resolve => {
         // Create the response block
         const block = document.createElement('div');
         block.className = 'ai-block';
         output.appendChild(block);
-        
+
         // Create content div for typewriter
         const content = document.createElement('div');
         content.className = 'ai-content';
         block.appendChild(content);
-        
-        // Typewriter effect inside the block
+
+        // Typewriter effect inside the block - plain text only
         let i = 0;
         const cursor = document.createElement('span');
         cursor.className = 'typing-cursor';
         cursor.textContent = '█';
         content.appendChild(cursor);
-        
+
         function type() {
             if (i < text.length) {
                 if (text[i] === '\n') {
                     content.insertBefore(document.createElement('br'), cursor);
-                    i++;
-                } else if (text[i] === '&') {
-                    const entityEnd = text.indexOf(';', i);
-                    if (entityEnd !== -1) {
-                        const entity = text.substring(i, entityEnd + 1);
-                        const span = document.createElement('span');
-                        span.innerHTML = entity;
-                        content.insertBefore(span, cursor);
-                        i = entityEnd + 1;
-                    } else {
-                        content.insertBefore(document.createTextNode(text[i]), cursor);
-                        i++;
-                    }
-                } else if (text[i] === '<') {
-                    const tagEnd = text.indexOf('>', i);
-                    if (tagEnd !== -1) {
-                        const tag = text.substring(i, tagEnd + 1);
-                        const temp = document.createElement('div');
-                        temp.innerHTML = tag;
-                        if (temp.firstChild) {
-                            content.insertBefore(temp.firstChild, cursor);
-                        }
-                        i = tagEnd + 1;
-                    } else {
-                        content.insertBefore(document.createTextNode(text[i]), cursor);
-                        i++;
-                    }
                 } else {
+                    // Always use createTextNode for safety - treats everything as plain text
                     content.insertBefore(document.createTextNode(text[i]), cursor);
-                    i++;
                 }
+                i++;
                 smartScroll();
                 setTimeout(type, typeSpeed);
             } else {
@@ -459,10 +442,18 @@ function openTeaser(projectKey, duration = 6000) {
         currentProject = p;
         cinemaTitle.textContent = p.name;
         cinemaTagline.textContent = p.tagline;
-        cinemaTech.innerHTML = p.tech.map(t => `<span class="tech-tag">[${t}]</span>`).join(' ');
-        
+        // SECURITY: Build tech tags safely using DOM methods
+        cinemaTech.innerHTML = '';
+        p.tech.forEach((t, i) => {
+            if (i > 0) cinemaTech.appendChild(document.createTextNode(' '));
+            const span = document.createElement('span');
+            span.className = 'tech-tag';
+            span.textContent = `[${t}]`;
+            cinemaTech.appendChild(span);
+        });
+
         document.body.style.overflow = 'hidden';
-        
+
         projectVideo.pause();
         
         grain.classList.remove('fade');
@@ -555,19 +546,18 @@ async function renderProjectsList() {
             actions.push(`<span class="action-btn" onclick="event.stopPropagation(); openCinema('${key}')">▶ watch</span>`);
         }
         if (p.link) {
-            actions.push(`<a href="${p.link}" target="_blank" class="action-btn" onclick="event.stopPropagation()">🔗 visit</a>`);
+            actions.push(`<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="action-btn" onclick="event.stopPropagation()">🔗 visit</a>`);
         }
         if (p.github) {
-            actions.push(`<a href="${p.github}" target="_blank" class="action-btn" onclick="event.stopPropagation()">📂 github</a>`);
+            actions.push(`<a href="${p.github}" target="_blank" rel="noopener noreferrer" class="action-btn" onclick="event.stopPropagation()">📂 github</a>`);
         }
         const actionsHtml = actions.join(' ');
-        const mainAction = hasVideo ? `openCinema('${key}')` : `showProjectCommand('${key}')`;
-        
         // Create card element
         const card = document.createElement('div');
         card.className = 'project-card-item';
         card.dataset.project = key;
-        card.onclick = () => eval(mainAction);
+        // SECURITY: Direct function call instead of eval()
+        card.onclick = () => hasVideo ? openCinema(key) : showProjectCommand(key);
         card.innerHTML = `
             <div class="project-card-item-header">
                 <span class="project-card-item-name"></span>
@@ -704,7 +694,7 @@ async function renderContactSection() {
     linkedinItem.className = 'contact-item';
     linkedinItem.innerHTML = `
         <span class="contact-label">LINKEDIN</span>
-        <a href="https://www.linkedin.com/in/sueda-gul-/" target="_blank" class="contact-link">linkedin.com/in/sueda-gul-</a>
+        <a href="https://www.linkedin.com/in/sueda-gul-/" target="_blank" rel="noopener noreferrer" class="contact-link">linkedin.com/in/sueda-gul-</a>
     `;
     linkedinItem.style.opacity = '0';
     itemsContainer.appendChild(linkedinItem);
@@ -715,6 +705,7 @@ async function renderContactSection() {
 }
 
 // ========== PROJECT INFO CARD (for projects without video) ==========
+// SECURITY: Build DOM elements safely without innerHTML to prevent XSS
 function renderProjectInfoCard(projectKey) {
     const p = projects[projectKey];
     if (!p) return;
@@ -722,25 +713,75 @@ function renderProjectInfoCard(projectKey) {
     const block = document.createElement('div');
     block.className = 'project-info-card';
     
-    let linksHtml = '';
-    if (p.link) {
-        linksHtml += `<a href="${p.link}" target="_blank" class="project-card-link">🔗 Live Demo</a>`;
-    }
-    if (p.github) {
-        linksHtml += `<a href="${p.github}" target="_blank" class="project-card-link">📂 GitHub</a>`;
+    // Header
+    const header = document.createElement('div');
+    header.className = 'project-card-header';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'project-card-name';
+    nameSpan.textContent = p.name;
+    const statusSpan = document.createElement('span');
+    statusSpan.className = 'project-card-status';
+    statusSpan.textContent = `[${p.status}]`;
+    header.appendChild(nameSpan);
+    header.appendChild(statusSpan);
+    block.appendChild(header);
+    
+    // Achievement
+    if (p.achievement) {
+        const achievement = document.createElement('div');
+        achievement.className = 'project-card-achievement';
+        achievement.textContent = p.achievement;
+        block.appendChild(achievement);
     }
     
-    block.innerHTML = `
-        <div class="project-card-header">
-            <span class="project-card-name">${p.name}</span>
-            <span class="project-card-status">[${p.status}]</span>
-        </div>
-        ${p.achievement ? `<div class="project-card-achievement">${p.achievement}</div>` : ''}
-        <div class="project-card-tagline">${p.tagline}</div>
-        <div class="project-card-desc">${p.description || ''}</div>
-        <div class="project-card-tech">${p.tech.map(t => `<span>[${t}]</span>`).join(' ')}</div>
-        ${linksHtml ? `<div class="project-card-links">${linksHtml}</div>` : ''}
-    `;
+    // Tagline
+    const tagline = document.createElement('div');
+    tagline.className = 'project-card-tagline';
+    tagline.textContent = p.tagline;
+    block.appendChild(tagline);
+    
+    // Description
+    const desc = document.createElement('div');
+    desc.className = 'project-card-desc';
+    desc.textContent = p.description || '';
+    block.appendChild(desc);
+    
+    // Tech tags
+    const tech = document.createElement('div');
+    tech.className = 'project-card-tech';
+    if (p.tech) {
+        p.tech.forEach(t => {
+            const span = document.createElement('span');
+            span.textContent = `[${t}]`;
+            tech.appendChild(span);
+        });
+    }
+    block.appendChild(tech);
+    
+    // Links
+    if (p.link || p.github) {
+        const links = document.createElement('div');
+        links.className = 'project-card-links';
+        if (p.link) {
+            const linkA = document.createElement('a');
+            linkA.href = p.link;
+            linkA.target = '_blank';
+            linkA.rel = 'noopener noreferrer';
+            linkA.className = 'project-card-link';
+            linkA.textContent = '🔗 Live Demo';
+            links.appendChild(linkA);
+        }
+        if (p.github) {
+            const githubA = document.createElement('a');
+            githubA.href = p.github;
+            githubA.target = '_blank';
+            githubA.rel = 'noopener noreferrer';
+            githubA.className = 'project-card-link';
+            githubA.textContent = '📂 GitHub';
+            links.appendChild(githubA);
+        }
+        block.appendChild(links);
+    }
     
     output.appendChild(block);
     
@@ -782,7 +823,7 @@ async function renderIntroBlock() {
     const githubItem = addElement(`
         <div class="intro-item" style="opacity: 0;">
             <span class="intro-label">GITHUB</span>
-            <a href="https://github.com/sueda-gl" target="_blank" class="intro-link">github.com/sueda-gl</a>
+            <a href="https://github.com/sueda-gl" target="_blank" rel="noopener noreferrer" class="intro-link">github.com/sueda-gl</a>
         </div>
     `);
     githubItem.style.transition = 'opacity 0.5s ease';
@@ -1049,7 +1090,15 @@ function openCinema(projectKey) {
     currentProject = p;
     cinemaTitle.textContent = p.name;
     cinemaTagline.textContent = p.tagline;
-    cinemaTech.innerHTML = p.tech.map(t => `<span class="tech-tag">[${t}]</span>`).join(' ');
+    // SECURITY: Build tech tags safely using DOM methods
+    cinemaTech.innerHTML = '';
+    p.tech.forEach((t, i) => {
+        if (i > 0) cinemaTech.appendChild(document.createTextNode(' '));
+        const span = document.createElement('span');
+        span.className = 'tech-tag';
+        span.textContent = `[${t}]`;
+        cinemaTech.appendChild(span);
+    });
     
     // Prevent body scroll while cinema is open
     document.body.style.overflow = 'hidden';
@@ -1220,12 +1269,12 @@ function handleDirectCommand(message) {
     
     // Help
     if (msg === 'help' || msg === '?') {
-        print('&nbsp;', '', 0, false);
+        print('&nbsp;', '', 0, false, true);  // allowHtml for &nbsp;
         print('COMMANDS:', 'bright', 100);
         print('  projects ......... list all projects', '', 200);
         print('  show [name] ...... open project cinema', '', 300);
         print('  clear ............ clear screen', '', 400);
-        print('&nbsp;', '', 500, false);
+        print('&nbsp;', '', 500, false, true);  // allowHtml for &nbsp;
         print('Or just ask me anything!', 'dim', 600);
         return true;
     }

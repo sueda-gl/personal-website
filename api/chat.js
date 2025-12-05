@@ -70,6 +70,14 @@ module.exports = async function handler(req, res) {
     }
     
     try {
+        // SECURITY: Reject prototype pollution attempts
+        // Check if these keys exist as OWN properties (not inherited)
+        if (Object.prototype.hasOwnProperty.call(req.body, '__proto__') ||
+            Object.prototype.hasOwnProperty.call(req.body, 'constructor') ||
+            Object.prototype.hasOwnProperty.call(req.body, 'prototype')) {
+            return res.status(400).json({ error: 'Invalid request payload' });
+        }
+        
         // Input validation
         const validation = validateInput(req.body);
         if (!validation.valid) {
@@ -130,22 +138,24 @@ module.exports = async function handler(req, res) {
         });
         
     } catch (error) {
-        console.error('Chat API Error:', error);
+        // SECURITY: Log error details server-side only, return generic message to client
+        console.error('Chat API Error:', error.message, error.code);
         
         if (error.code === 'invalid_api_key') {
-            return res.status(500).json({ 
-                error: 'API configuration error. Please try again later.' 
+            return res.status(503).json({ 
+                error: 'Service temporarily unavailable. Please try again later.' 
             });
         }
         
         if (error.code === 'rate_limit_exceeded') {
             return res.status(429).json({
-                error: 'AI service is busy. Please try again in a moment.'
+                error: 'Service is busy. Please try again in a moment.'
             });
         }
         
+        // Generic error - don't reveal internal details
         return res.status(500).json({ 
-            error: 'Something went wrong. Try again.'
+            error: 'An error occurred. Please try again.'
         });
     }
 };
